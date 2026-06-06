@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leading Without Authority — Game</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0f1e;--card:#161d2e;--border:#1e2d4a;--text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;--amber:#f59e0b;--amber2:#d97706;--green:#10b981;--red:#ef4444;--blue:#06b6d4;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Be Vietnam Pro',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 20% 10%,rgba(245,158,11,.06) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 80%,rgba(6,182,212,.06) 0%,transparent 60%);pointer-events:none;z-index:0;}
+.screen{display:none;position:relative;z-index:1;}
+.screen.active{display:block;}
+/* INTRO */
+#intro{max-width:700px;margin:0 auto;padding:48px 20px;text-align:center;}
+.game-tag{display:inline-block;background:linear-gradient(90deg,var(--amber),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:16px;}
+.game-title{font-size:clamp(26px,5vw,42px);font-weight:800;line-height:1.15;margin-bottom:14px;background:linear-gradient(135deg,#fff,var(--amber));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.game-subtitle{color:var(--text2);font-size:14px;line-height:1.7;margin-bottom:24px;}
+.context-box{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:12px;padding:18px 20px;margin-bottom:22px;text-align:left;}
+.ctx-title{font-size:11px;font-weight:700;color:var(--amber);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;}
+.ctx-row{display:flex;gap:8px;margin-bottom:7px;font-size:13px;line-height:1.5;}
+.ctx-lbl{color:var(--text3);min-width:100px;flex-shrink:0;font-size:12px;}
+.intro-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px;text-align:left;}
+.intro-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px 15px;}
+.intro-card-title{font-size:12px;font-weight:700;margin-bottom:4px;}
+.intro-card-text{font-size:11px;color:var(--text2);line-height:1.5;}
+.rules-box{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:22px;text-align:left;}
+.rules-title{font-size:11px;font-weight:700;color:var(--amber);margin-bottom:10px;letter-spacing:1px;text-transform:uppercase;}
+.rule-item{display:flex;gap:8px;margin-bottom:6px;font-size:12px;color:var(--text2);line-height:1.5;}
+.rule-dot{color:var(--amber);font-weight:700;flex-shrink:0;}
+.btn-primary{display:inline-block;background:linear-gradient(135deg,var(--amber),var(--amber2));color:#000;font-family:'Be Vietnam Pro',sans-serif;font-size:15px;font-weight:800;padding:15px 44px;border-radius:99px;border:none;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 24px rgba(245,158,11,.35);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(245,158,11,.45);}
+/* ORGCHART */
+#orgchart-screen{max-width:900px;margin:0 auto;padding:36px 20px;text-align:center;}
+.org-title{font-size:22px;font-weight:800;margin-bottom:6px;background:linear-gradient(135deg,#fff,var(--amber));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.org-subtitle{color:var(--text2);font-size:13px;margin-bottom:28px;}
+.org-node{background:var(--card);border:1.5px solid var(--border);border-radius:10px;padding:9px 12px;min-width:118px;text-align:center;display:inline-block;}
+.org-node.you{border-color:var(--amber);background:rgba(245,158,11,.08);}
+.org-node.mgr{border-color:var(--blue);background:rgba(6,182,212,.06);}
+.org-av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin:0 auto 4px;}
+.org-name{font-size:11px;font-weight:700;line-height:1.2;}
+.org-role{font-size:9px;color:var(--text2);margin-top:2px;line-height:1.3;}
+.org-badge{font-size:8px;font-weight:700;margin-top:3px;}
+.vline{width:2px;height:16px;margin:0 auto;}
+.vline-amber{background:var(--amber);}
+.vline-gray{background:var(--border);}
+.hline{height:2px;background:var(--border);}
+.org-legend{display:flex;gap:16px;justify-content:center;margin-top:20px;flex-wrap:wrap;}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);}
+.legend-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+/* GAME */
+#game{max-width:1120px;margin:0 auto;padding:14px 14px 40px;}
+.game-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding:10px 16px;background:var(--card);border:1px solid var(--border);border-radius:12px;}
+.turn-num{font-size:20px;font-weight:800;color:var(--amber);}
+.game-layout{display:grid;grid-template-columns:1fr 340px;gap:14px;}
+@media(max-width:800px){.game-layout{grid-template-columns:1fr;}}
+.npc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.npc-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:11px;cursor:pointer;transition:all .15s;position:relative;}
+.npc-card:hover{border-color:rgba(245,158,11,.35);}
+.npc-card.adopted{border-color:var(--green);}
+.npc-card.mgr-card{border-color:rgba(6,182,212,.3);}
+.npc-card-top{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.npc-av{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.npc-name{font-size:12px;font-weight:600;}
+.npc-role{font-size:10px;color:var(--text2);margin-top:1px;}
+.npc-bar-bg{background:rgba(255,255,255,.08);border-radius:99px;height:5px;margin-bottom:3px;overflow:hidden;}
+.npc-bar-fill{height:5px;border-radius:99px;transition:width .4s ease;}
+.npc-pct{font-size:11px;font-weight:700;}
+.adopted-badge{position:absolute;top:7px;right:7px;background:var(--green);color:#fff;font-size:8px;font-weight:700;padding:2px 5px;border-radius:99px;}
+.mgr-badge{position:absolute;top:7px;right:7px;background:rgba(6,182,212,.2);color:var(--blue);font-size:8px;font-weight:700;padding:2px 5px;border-radius:99px;}
+.hint-section{margin-top:7px;padding-top:7px;border-top:1px solid var(--border);display:none;}
+.hint-row{font-size:11px;color:var(--text2);margin-bottom:4px;line-height:1.4;display:flex;gap:5px;}
+.hint-lock{color:var(--text3);font-style:italic;}
+.hint-badge{flex-shrink:0;font-size:8px;font-weight:700;padding:1px 4px;border-radius:4px;background:rgba(245,158,11,.15);color:var(--amber);}
+/* ACTION PANEL */
+.action-panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:13px;height:fit-content;position:sticky;top:14px;}
+.panel-title{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);margin-bottom:8px;}
+.action-list{display:flex;flex-direction:column;gap:4px;margin-bottom:12px;max-height:280px;overflow-y:auto;}
+.action-item{padding:7px 10px;border-radius:7px;border:1px solid var(--border);cursor:pointer;transition:all .15s;background:rgba(255,255,255,.02);}
+.action-item:hover{border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.05);}
+.action-item.selected{border-color:var(--amber);background:rgba(245,158,11,.1);}
+.action-item.disabled{opacity:.35;cursor:not-allowed;pointer-events:none;}
+.action-item-name{font-size:12px;font-weight:600;margin-bottom:1px;}
+.action-item-meta{font-size:10px;color:var(--text2);display:flex;gap:5px;flex-wrap:wrap;align-items:center;}
+.sbadge{font-size:9px;font-weight:700;padding:1px 5px;border-radius:4px;}
+.sa{background:#E6F1FB;color:#0C447C;} .s1{background:#F1EFE8;color:#5F5E5A;} .s2{background:#EEEDFE;color:#3C3489;} .s3{background:#E1F5EE;color:#085041;}
+.limit-txt{color:var(--amber);font-size:10px;} .used-txt{color:var(--red);font-size:10px;}
+.target-label{font-size:11px;color:var(--text2);margin-bottom:5px;}
+.tbtn{padding:3px 8px;border-radius:5px;font-size:11px;cursor:pointer;transition:all .15s;border:1px solid var(--border);background:transparent;color:var(--text);}
+.tbtn:hover{border-color:rgba(245,158,11,.4);}
+.tbtn.sel{border-color:var(--amber);background:rgba(245,158,11,.1);}
+.tbtn.dim{opacity:.3;cursor:not-allowed;}
+.confirm-btn{width:100%;padding:10px;background:linear-gradient(135deg,var(--amber),var(--amber2));color:#000;font-family:'Be Vietnam Pro',sans-serif;font-size:13px;font-weight:800;border:none;border-radius:7px;cursor:pointer;margin-top:10px;}
+.confirm-btn:hover{opacity:.9;} .confirm-btn:disabled{opacity:.35;cursor:not-allowed;}
+.fb-box{margin-top:9px;padding:9px;border-radius:7px;font-size:12px;line-height:1.6;}
+.fb-pos{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);color:#6ee7b7;}
+.fb-neg{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:#fca5a5;}
+.fb-neu{background:rgba(148,163,184,.08);border:1px solid rgba(148,163,184,.15);color:var(--text2);}
+.fb-who{font-weight:700;margin-bottom:2px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;}
+.log-section{margin-top:10px;border-top:1px solid var(--border);padding-top:8px;max-height:140px;overflow-y:auto;}
+.log-title{font-size:10px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;}
+.log-item{font-size:10px;color:var(--text2);padding:2px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.lp{color:var(--green);} .ln{color:var(--red);} .lz{color:var(--text3);}
+/* REPORT */
+#report{max-width:860px;margin:0 auto;padding:0 20px 40px;}
+.rpt-cover{background:linear-gradient(135deg,#0d2137 0%,#0a3d2e 100%);border-radius:16px;padding:48px 40px;margin-bottom:24px;text-align:center;}
+.rpt-cover-tag{font-size:11px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:12px;}
+.rpt-cover-title{font-size:32px;font-weight:800;color:#fff;margin-bottom:8px;}
+.rpt-cover-sub{font-size:14px;color:rgba(255,255,255,.6);}
+.rpt-section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:16px;}
+.rpt-section-title{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--amber);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+/* Score gauge */
+.score-gauge-wrap{display:flex;align-items:center;gap:24px;margin-bottom:20px;}
+.score-circle{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:28px;font-weight:800;}
+.score-desc{font-size:13px;line-height:1.6;color:var(--text2);}
+.score-level-bar{display:flex;gap:0;border-radius:99px;overflow:hidden;height:8px;margin-bottom:6px;}
+.slb-seg{flex:1;}
+/* 3 metrics */
+.metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:8px;}
+.metric-card{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;}
+.metric-circle{width:64px;height:64px;border-radius:50%;border:4px solid;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;margin:0 auto 10px;}
+.metric-name{font-size:12px;font-weight:600;margin-bottom:4px;}
+.metric-desc{font-size:11px;color:var(--text2);line-height:1.4;}
+/* adoption chart */
+.adoption-timeline{display:flex;align-items:flex-end;gap:2px;height:80px;padding:0 4px;margin:12px 0;}
+.atb{flex:1;background:rgba(16,185,129,.3);border-radius:3px 3px 0 0;transition:height .3s;min-width:8px;}
+/* npc report */
+.npc-rpt-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.npc-rpt-row:last-child{border-bottom:none;}
+.npc-rpt-bar-bg{flex:1;background:rgba(255,255,255,.07);border-radius:99px;height:7px;}
+.npc-rpt-bar-fill{height:7px;border-radius:99px;}
+/* action report */
+.ar-header{display:grid;grid-template-columns:1fr 44px 44px 44px 64px;gap:4px;font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;padding:0 8px;}
+.ar-row{display:grid;grid-template-columns:1fr 44px 44px 44px 64px;gap:4px;align-items:center;padding:7px 8px;border-radius:6px;margin-bottom:2px;font-size:12px;}
+.ar-hl-most{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);}
+.ar-hl-pos{background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);}
+.ar-hl-neg{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);}
+.hl-badge{font-size:8px;font-weight:700;padding:1px 5px;border-radius:99px;margin-left:4px;vertical-align:middle;}
+/* history */
+.hist-header{display:flex;align-items:center;gap:8px;padding:7px 0;cursor:pointer;}
+.hist-body{display:none;padding:0 0 8px 20px;}
+.hist-body.open{display:block;}
+.hist-item{font-size:11px;color:var(--text2);padding:2px 0;}
+/* key insights */
+.insight-box{background:rgba(255,255,255,.03);border-radius:10px;padding:14px 16px;margin-bottom:10px;border-left:3px solid;}
+.insight-box.good{border-color:var(--green);}
+.insight-box.bad{border-color:var(--red);}
+.insight-box.tip{border-color:var(--amber);}
+.insight-title{font-size:12px;font-weight:700;margin-bottom:4px;}
+.insight-text{font-size:12px;color:var(--text2);line-height:1.5;}
+.result-banner{text-align:center;padding:20px;border-radius:14px;margin-bottom:20px;}
+.result-banner.win{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);}
+.result-banner.lose{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);}
+.play-again-btn{display:inline-block;background:transparent;border:1.5px solid var(--border);color:var(--text2);font-family:'Be Vietnam Pro',sans-serif;font-size:13px;font-weight:600;padding:10px 30px;border-radius:99px;cursor:pointer;transition:all .15s;margin-top:8px;}
+.play-again-btn:hover{border-color:var(--amber);color:var(--amber);}
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.stat-item{text-align:center;background:rgba(255,255,255,.03);border-radius:10px;padding:14px;}
+.stat-num{font-size:24px;font-weight:800;color:var(--amber);}
+.stat-label{font-size:11px;color:var(--text2);margin-top:2px;}
+
+@media print {
+  body{background:#ffffff!important;}
+  body::before{display:none!important;}
+  #game,#intro,#orgchart-screen{display:none!important;}
+  #report{display:block!important;}
+  #rpt-pdf-btns{display:none!important;}
+  .rpt-cover{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .rpt-section{break-inside:avoid;border:1px solid #e2e8f0!important;background:#fff!important;color:#1e293b!important;}
+  .rpt-section-title{color:#d97706!important;}
+  .npc-rpt-bar-fill,.pdf-bar-fill{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .stat-item{background:#f8fafc!important;border:1px solid #e2e8f0!important;}
+  .stat-num{color:#d97706!important;}
+  .rpt-cover-title{color:#fff!important;}
+  .score-level-bar .slb-seg{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div id="intro" class="screen active">
+  <div class="game-tag">Simulation Game</div>
+  <h1 class="game-title">Leading Without Authority</h1>
+  <p class="game-subtitle">Bạn vừa được bổ nhiệm vào một vị trí mới tại <strong>Minh Phát Group</strong> — tập đoàn phân phối hàng tiêu dùng đang muốn chuyển đổi số nhưng văn hóa còn rất truyền thống.</p>
+  <div class="context-box">
+    <div class="ctx-title">Bối cảnh của bạn</div>
+    <div class="ctx-row"><span class="ctx-lbl">Bạn là</span><span>Trưởng nhóm Chuyển đổi Số — vừa được tuyển từ bên ngoài vào</span></div>
+    <div class="ctx-row"><span class="ctx-lbl">Báo cáo cho</span><span>Ông C (Phó GĐ Kinh doanh) — line manager trực tiếp của bạn</span></div>
+    <div class="ctx-row"><span class="ctx-lbl">Quyền hạn</span><span>Không có cấp dưới, không có ngân sách riêng, không có quyền ra lệnh</span></div>
+    <div class="ctx-row"><span class="ctx-lbl">Mong muốn</span><span>Áp dụng hệ thống quản lý công việc chung cho toàn công ty</span></div>
+    <div class="ctx-row"><span class="ctx-lbl">Thách thức</span><span>Văn hóa "làm theo cách cũ", mỗi phòng ban có quy trình riêng, nhiều người ngại thay đổi</span></div>
+  </div>
+  <div class="intro-cards">
+    <div class="intro-card"><div class="intro-card-title">🎯 Mục tiêu</div><div class="intro-card-text">Thuyết phục ít nhất 5/8 người (bao gồm Bà A — TGĐ) trong 30 ngày làm việc.</div></div>
+    <div class="intro-card"><div class="intro-card-title">🔗 Line manager</div><div class="intro-card-text">Ông C là người quản lý trực tiếp của bạn — ông có thiện cảm ban đầu cao hơn và dễ tiếp cận hơn các Phó GĐ khác.</div></div>
+    <div class="intro-card"><div class="intro-card-title">💡 Chiến lược</div><div class="intro-card-text">Đúng hành động, đúng người, đúng thời điểm. Quan sát phản ứng để hiểu họ đang ở đâu.</div></div>
+    <div class="intro-card"><div class="intro-card-title">🔓 Hints</div><div class="intro-card-text">"Tìm hiểu thông tin nền" mở thêm hints về từng người ngay lập tức — dùng sớm!</div></div>
+  </div>
+  <div class="rules-box">
+    <div class="rules-title">Luật chơi cốt lõi</div>
+    <div class="rule-item"><span class="rule-dot">→</span><span>Hành động đúng giai đoạn hiệu quả hơn. Sai giai đoạn có thể bị trừ điểm.</span></div>
+    <div class="rule-item"><span class="rule-dot">→</span><span>Một số hành động chỉ dùng 1 lần. Chọn đúng thời điểm!</span></div>
+    <div class="rule-item"><span class="rule-dot">→</span><span>Không dùng cùng 1 hành động 2 lần liên tiếp cho 1 người.</span></div>
+    <div class="rule-item"><span class="rule-dot">→</span><span>Vận động: chọn 1 người đến thuyết phục 1 người khác. Người vận động càng đồng thuận cao càng hiệu quả. Mỗi người chỉ được cử đi lobby tối đa 3 lần.</span></div>
+    <div class="rule-item"><span class="rule-dot">→</span><span>Đọc phản ứng sau mỗi hành động để suy đoán giai đoạn của từng người.</span></div>
+  </div>
+  <button class="btn-primary" onclick="showOrgChart()">Xem sơ đồ tổ chức →</button>
+</div>
+
+<!-- ORGCHART -->
+<div id="orgchart-screen" class="screen">
+  <div class="org-title">Sơ đồ tổ chức — Minh Phát Group</div>
+  <div class="org-subtitle">Hiểu rõ vị trí các stakeholder trước khi bắt đầu. Ông C là line manager trực tiếp của bạn.</div>
+  <div id="org-tree" style="overflow-x:auto;padding-bottom:12px;"></div>
+  <div class="org-legend">
+    <div class="legend-item"><div class="legend-dot" style="background:rgba(6,182,212,.3);border:1px solid var(--blue);"></div>Line manager của bạn</div>
+    <div class="legend-item"><div class="legend-dot" style="background:rgba(245,158,11,.3);border:1px solid var(--amber);"></div>Bạn</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--card);border:1px solid var(--border);"></div>Nhân vật cần thuyết phục</div>
+  </div>
+  <div style="margin-top:28px;"><button class="btn-primary" onclick="startGame()">Bắt đầu chơi →</button></div>
+</div>
+
+<!-- GAME -->
+<div id="game" class="screen">
+  <div class="game-header">
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div style="font-size:13px;color:var(--text2)">Ngày <span class="turn-num" id="turn-display">1</span> / 30</div>
+      <div style="font-size:12px;color:var(--text2)">Đã thuyết phục: <span style="font-weight:700;color:var(--green)" id="win-count">0</span>/8 người</div>
+    </div>
+    <div style="font-size:11px;color:var(--text3)">Minh Phát Group · Mục tiêu: 5/8 (gồm Bà A)</div>
+  </div>
+  <div class="game-layout">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div style="font-size:10px;color:var(--text3);letter-spacing:.5px;text-transform:uppercase">Nhân vật — Click để xem hints</div>
+        <div id="network-badges" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+      </div>
+      <div class="npc-grid" id="npc-grid"></div>
+    </div>
+    <div class="action-panel">
+      <div class="panel-title">Hành động</div>
+      <div class="action-list" id="action-list"></div>
+      <div>
+        <div class="target-label" id="target-label">Chọn hành động trước</div>
+        <div id="target-selector"></div>
+      </div>
+      <button class="confirm-btn" id="confirm-btn" disabled onclick="confirmAction()">Xác nhận →</button>
+      <div id="feedback-area"></div>
+      <div class="log-section">
+        <div class="log-title">Lịch sử gần đây</div>
+        <div id="action-log"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT -->
+<div id="report" class="screen" style="padding-top:36px;">
+  <div id="rpt-content"></div>
+  <div id="rpt-pdf-btns" style="text-align:center;margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+    <button class="btn-primary" style="font-size:14px;padding:13px 32px;" onclick="exportReportPDF()">Xuất báo cáo PDF</button>
+    <button class="play-again-btn" onclick="resetGame()">← Chơi lại</button>
+  </div>
+</div>
+
+<script>
+// ═══════════ NPC DATA ═══════════
+// Level: 0=CEO, 1=Phó GĐ, 2=Trưởng phòng/Staff
+const NPCS=[
+  {id:'A',name:'Bà A',role:'Tổng Giám Đốc',level:0,color:'#0F6E56',bg:'#E1F5EE',tc:'#085041',startPct:20,isManager:false,
+   hints:['Bà A rất bận — chỉ có 2 cuộc họp ngoài lịch mỗi tháng. Đừng lãng phí lượt tiếp cận sớm.','Bà A đọc báo cáo tóm tắt mỗi thứ Sáu. Nếu ít nhất 2 Phó GĐ đồng thuận, bà sẽ đưa vào agenda.','Điều bà A muốn nghe: "Dự án này giúp công ty dẫn đầu ngành trong 3 năm tới như thế nào?"']},
+  {id:'B',name:'Ông B',role:'Phó GĐ Vận hành',level:1,color:'#0F6E56',bg:'#E1F5EE',tc:'#085041',startPct:20,isManager:false,
+   hints:['Ông B ăn trưa một mình ở căng-tin tầng 2 vào thứ Ba và thứ Năm — thời điểm dễ bắt chuyện.','Ông B từng thất bại với dự án công nghệ 3 năm trước. Đừng nói "hệ thống mới" — hãy nói "cách làm việc mới".','Nếu ông B nói "để tôi nghĩ thêm" — tín hiệu tích cực. Theo up sau 2 ngày với tài liệu 1 trang.']},
+  {id:'C',name:'Ông C',role:'Phó GĐ Kinh doanh',level:1,color:'#185FA5',bg:'#E6F1FB',tc:'#0C447C',startPct:35,isManager:true,
+   hints:['Ông C là line manager của bạn — ông sẵn sàng hỗ trợ nếu bạn chứng minh được giá trị.','Ông C đang dưới áp lực doanh số Q3. Nếu CĐS rút ngắn chu kỳ bán hàng, ông sẽ ủng hộ mạnh.','Ông C tôn trọng anh G. Nếu anh G đồng thuận, ông C sẽ nói tốt về dự án với bà A.']},
+  {id:'D',name:'Bà D',role:'Phó GĐ Tài chính',level:1,color:'#854F0B',bg:'#FAEEDA',tc:'#633806',startPct:8,isManager:false,
+   hints:['Đừng tiếp cận bà D quá sớm — bà sẽ hỏi ngay "ngân sách bao nhiêu?" và đóng cửa nếu chưa có số.','Bà D tin tưởng chị H. Nếu chị H OK, bà D sẽ không phản đối mạnh nữa.','Bà D cần: chi phí năm 1, tiết kiệm từ năm 2, ROI rõ ràng. Chuẩn bị bảng tính 1 trang.']},
+  {id:'E',name:'Chị E',role:'Trưởng phòng IT',level:2,color:'#534AB7',bg:'#EEEDFE',tc:'#3C3489',startPct:30,isManager:false,
+   hints:['Hỏi ý kiến chị E trước khi trình bày bất kỳ giải pháp kỹ thuật nào — chị sẽ bảo vệ thay vì phản đối.','Chị E có nhóm chat nội bộ với team IT. Nếu chị hào hứng, cả team IT ủng hộ theo.','Nhờ chị E đồng trình bày phần kỹ thuật trong buổi họp với Phó GĐ — chị sẽ cảm thấy được ghi nhận.']},
+  {id:'F',name:'Chị F',role:'Trưởng phòng HR',level:2,color:'#185FA5',bg:'#E6F1FB',tc:'#0C447C',startPct:12,isManager:false,
+   hints:['Chị F là "bộ nhớ" của công ty — biết ai đang bất mãn và ai có ảnh hưởng ngầm.','Nếu thuyết phục được chị F, chị sẽ lồng ghép CĐS vào buổi onboarding — nhân rộng tự nhiên.','Chị F lo nhất: ai sẽ mất việc vì tự động hóa? Trả lời thuyết phục, chị sẽ đứng về phía bạn.']},
+  {id:'G',name:'Anh G',role:'Trưởng phòng Sales',level:2,color:'#854F0B',bg:'#FAEEDA',tc:'#633806',startPct:10,isManager:false,
+   hints:['Anh G ghét họp. Tiếp cận bằng cuộc gặp 15 phút không slide — hỏi: "Anh đang gặp khó khăn gì nhất?"','Anh G có 2 nhân viên sales trẻ hứng thú công cụ mới. Nhờ họ dùng thử và báo cáo lại cho anh G.','Demo cho anh G: với công cụ mới, chuẩn bị báo giá trong 5 phút thay vì 30 phút.']},
+  {id:'H',name:'Chị H',role:'Trưởng phòng Kế toán',level:2,color:'#993C1D',bg:'#FAECE7',tc:'#712B13',startPct:5,isManager:false,
+   hints:['Đừng thuyết phục chị H bằng lý thuyết. Hỏi: "Chị tốn bao nhiêu giờ/tuần để đối chiếu số liệu?" — chờ chị tự nhận ra.','Chị H sợ nhập sai số liệu. Đề xuất chạy song song 2 hệ thống 1 tháng để chị yên tâm.','Nếu chị H hỏi "lỡ hệ thống lỗi thì ai chịu trách nhiệm?" — chị đang cân nhắc nghiêm túc rồi.']},
+  {id:'I',name:'Anh I',role:'Trưởng phòng Pháp lý',level:2,color:'#0F6E56',bg:'#E1F5EE',tc:'#085041',startPct:15,isManager:false,
+   hints:['Anh I thường không được mời họp đầu tiên. Chủ động mời anh tham gia ngay từ sớm.','Anh I biết công ty đang chuẩn bị cho đợt kiểm toán — CĐS có thể giúp chuẩn bị tốt hơn.','Nhờ anh I soạn "điều khoản bảo mật dữ liệu" cho dự án — khi anh tự viết, anh sẽ tự cam kết.']},
+];
+
+
+
+const ACTIONS=[
+  {id:'info',name:'Tìm hiểu thông tin nền',scope:'2',sl:'2 người',special:'hint',eff:{awareness:0,interest:0,trial:0,adoption:0},desc:'Mở thêm 1 hint ngay lập tức.'},
+  {id:'email_ceo',name:'Email CEO',scope:'all',sl:'Tất cả',eff:{awareness:6,interest:4,trial:3,adoption:0},maxUses:1,usedCount:0},
+  {id:'survey_market',name:'Khảo sát thị trường',scope:'all',sl:'Tất cả',eff:{awareness:7,interest:6,trial:5,adoption:4},maxUses:1,usedCount:0},
+  {id:'ceo_order',name:'Lệnh CEO',scope:'all',sl:'Tất cả',special:'ceo_order',eff:{awareness:-10,interest:-7,trial:-3,adoption:0},maxUses:1,usedCount:0,reqA:true},
+  {id:'survey_int',name:'Khảo sát nội bộ',scope:'all',sl:'Tất cả',eff:{awareness:0,interest:5,trial:4,adoption:3},maxUses:1,usedCount:0},
+  {id:'board',name:'Họp Hội đồng Quản trị',scope:'all',sl:'Tất cả',eff:{awareness:0,interest:0,trial:6,adoption:7},maxUses:3,usedCount:0},
+  {id:'speaker',name:'Mời diễn giả bên ngoài',scope:'all',sl:'Tất cả',eff:{awareness:12,interest:8,trial:5,adoption:3},maxUses:1,usedCount:0},
+  {id:'meeting',name:'Họp trực tiếp',scope:'1',sl:'1 người',eff:{awareness:10,interest:8,trial:7,adoption:5},noConsec:true},
+  {id:'email',name:'Gửi email',scope:'1',sl:'1 người',eff:{awareness:6,interest:6,trial:5,adoption:4},noConsec:true},
+  {id:'pilot',name:'Dự án thí điểm',scope:'all',sl:'Tất cả',eff:{awareness:-8,interest:-5,trial:9,adoption:5},maxUses:1,usedCount:0},
+  {id:'consult',name:'Tham khảo ý kiến',scope:'1',sl:'1 người',eff:{awareness:-3,interest:12,trial:8,adoption:6},noConsec:true,perPersonMax:2},
+  {id:'lobby',name:'Vận động (lobby)',scope:'lobby',sl:'1→1 người',special:'lobby',eff:{},noConsec:true,perPersonMax:2},
+  {id:'consultant',name:'Thuê tư vấn bên ngoài',scope:'3',sl:'Tối đa 3',eff:{awareness:10,interest:8,trial:7,adoption:5},maxUses:1,usedCount:0},
+  {id:'training',name:'Đào tạo',scope:'3',sl:'Tối đa 3',eff:{awareness:-5,interest:-5,trial:10,adoption:9},perPersonMax:1},
+  {id:'presentation',name:'Thuyết trình',scope:'3',sl:'Tối đa 3',eff:{awareness:7,interest:7,trial:5,adoption:3},perPersonMax:1},
+  {id:'blog',name:'Viết blog công ty',scope:'all',sl:'Tất cả',special:'blog',
+   eff:{awareness:-5,interest:-3,trial:6,adoption:8},maxUses:1,usedCount:0,
+   desc:'Trial+ thì tích cực, thấp hơn thì tiêu cực. Chỉ dùng 1 lần.'},
+  {id:'network_q',name:'Hỏi về mạng lưới',scope:'1',sl:'1 người',special:'network_q',
+   eff:{},desc:'40% cơ hội khám phá mạng lưới xã hội. Mỗi người 1 lần.'},
+  {id:'political_q',name:'Hỏi về chính trị tổ chức',scope:'1',sl:'1 người',special:'political_q',
+   eff:{},desc:'40% cơ hội khám phá mạng lưới political. Mỗi người 1 lần.'},
+];
+
+const FB={
+  pos:{awareness:['Cảm ơn bạn đã chia sẻ! Tôi chưa nghĩ đến góc độ này.','Thú vị đấy, để tôi tìm hiểu thêm.','Nghe có vẻ hợp lý. Tôi sẽ để ý thêm.','Ồ, tôi chưa biết điều này. Cảm ơn!'],
+      interest:['Tôi khá tò mò. Mình nói thêm khi nào rảnh nhé.','Hướng này hay. Bạn có tài liệu không?','Tôi đang lắng nghe. Nói tiếp đi.','Tôi thấy có lý. Cho tôi biết thêm chi tiết.'],
+      trial:['Tôi sẵn sàng thử nếu có hỗ trợ ban đầu.','Cho tôi xem kế hoạch cụ thể.','Nếu như bạn nói thì tôi muốn tham gia thử.','Tôi đang nghiêm túc cân nhắc rồi.'],
+      adoption:['Tôi hoàn toàn ủng hộ! Cần tôi làm gì?','Bạn cứ tính tôi vào nhóm đồng thuận.','Tôi đã thuyết phục rồi. Tiến hành thôi!','Ý tưởng tốt, tôi sẽ nói với team của tôi.']},
+  neg:{awareness:['Bây giờ tôi đang bận lắm, để lúc khác nhé.','Tôi chưa thấy cần thiết lắm.','Chưa phải lúc thích hợp để bàn chuyện này.','Hmm, tôi cần thêm thời gian suy nghĩ.'],
+       interest:['Tôi chưa chắc về điều này.','Nghe phức tạp, tôi cần xem xét kỹ hơn.','Thuyết trình hơi dài dòng, bạn có thể tóm tắt không?','Tôi hiểu nhưng vẫn còn nhiều lo ngại.'],
+       trial:['Vẫn còn băn khoăn chưa được giải đáp.','Chưa đủ bằng chứng để tôi tin.','Tôi muốn thấy thêm kết quả thực tế.','Bạn cần thuyết phục tôi hơn nữa.'],
+       adoption:['Tôi nghĩ chúng ta đã nói điều này nhiều rồi.','Không cần thêm thông tin nữa.','Okay, tôi biết rồi.','Cảm ơn nhưng tôi đã có quyết định rồi.']}
+};
+
+// ═══════════ STATE ═══════════
+let state={};
+function initState(){
+  // Build 2 social networks (tennis, lunch) — random 3 members each, no overlap
+  const ids=NPCS.map(n=>n.id);
+  function pickRandom(pool,n){const s=[...pool];const r=[];while(r.length<n){const i=Math.floor(Math.random()*s.length);r.push(s.splice(i,1)[0]);}return r;}
+  const pool1=[...ids];
+  const tennis=pickRandom(pool1,3);
+  const remaining=ids.filter(id=>!tennis.includes(id));
+  const lunch=pickRandom(remaining,3);
+
+  // Build 2 political networks — 2 pairs of enemies, no overlap with each other
+  const politPool=[...ids];
+  const pair1=pickRandom(politPool,2);
+  const rem2=ids.filter(id=>!pair1.includes(id));
+  const pair2=pickRandom(rem2,2);
+
+  state={
+    turn:1,
+    npcs:NPCS.map(n=>({...n,pct:n.startPct,hintsUnlocked:1,lastAction:null,lastLobbyedBy:{},actionHistory:[],perActionCount:{},adoptedTurn:null,networkQAsked:false,politicalQAsked:false})),
+    actions:ACTIONS.map(a=>({...a,usedCount:a.usedCount||0})),
+    lobbyCount:{},
+    selAction:null,selTargets:[],selLobbyist:null,
+    log:[],actionStats:{},adoptionTimeline:[],
+    networks:{
+      social:[
+        {name:'Nhóm Tennis',members:tennis,revealed:false,color:'#06b6d4'},
+        {name:'Nhóm Ăn Trưa',members:lunch,revealed:false,color:'#f59e0b'},
+      ],
+      political:[
+        {members:pair1,revealed:false},
+        {members:pair2,revealed:false},
+      ]
+    },
+    gameOver:false,won:false
+  };
+}
+
+function getStage(pct){
+  if(pct<=25) return 'awareness';
+  if(pct<=50) return 'interest';
+  if(pct<=75) return 'trial';
+  return 'adoption';
+}
+
+// ═══════════ ORGCHART ═══════════
+function showOrgChart(){
+  document.getElementById('intro').classList.remove('active');
+  document.getElementById('orgchart-screen').classList.add('active');
+  buildOrgChart();
+}
+
+function makeOrgNode(npc,extraClass=''){
+  const d=document.createElement('div');
+  d.className='org-node'+(extraClass?' '+extraClass:'');
+  d.innerHTML=`<div class="org-av" style="background:${npc.bg};color:${npc.tc}">${npc.id}</div>
+    <div class="org-name">${npc.name}</div>
+    <div class="org-role">${npc.role}</div>
+    ${npc.isManager?'<div class="org-badge" style="color:var(--blue)">Line Manager</div>':''}`;
+  return d;
+}
+
+function makeYouNode(){
+  const d=document.createElement('div');
+  d.className='org-node you';
+  d.innerHTML=`<div class="org-av" style="background:rgba(245,158,11,.2);color:var(--amber)">★</div>
+    <div class="org-name" style="color:var(--amber)">Bạn</div>
+    <div class="org-role">Trưởng nhóm CĐS</div>
+    <div class="org-badge" style="color:var(--amber)">Vị trí của bạn</div>`;
+  return d;
+}
+
+function vl(amber){const d=document.createElement('div');d.className='vline '+(amber?'vline-amber':'vline-gray');return d;}
+function hl(w){const d=document.createElement('div');d.className='hline';d.style.width=w||'100%';return d;}
+function col(align,flex){const d=document.createElement('div');d.style.cssText=`display:flex;flex-direction:column;align-items:${align||'center'};flex:${flex||'0 0 auto'};`;return d;}
+function row(justify,gap){const d=document.createElement('div');d.style.cssText=`display:flex;justify-content:${justify||'center'};gap:${gap||'0'};width:100%;`;return d;}
+
+function buildOrgChart(){
+  const nMap={};NPCS.forEach(n=>nMap[n.id]=n);
+  const tree=document.getElementById('org-tree');
+  tree.innerHTML='';
+  const wrap=document.createElement('div');
+  wrap.style.cssText='display:inline-flex;flex-direction:column;align-items:center;min-width:820px;';
+
+  // L1: A
+  wrap.appendChild(makeOrgNode(nMap['A']));
+  wrap.appendChild(vl());
+  // H bar across L2
+  const hbar=hl('640px');wrap.appendChild(hbar);
+
+  // L2 row: B, C, D
+  const l2row=row('space-between','0');
+  l2row.style.width='640px';
+
+  // Under B: E, F
+  const colB=col('center','0 0 210px');
+  colB.appendChild(vl());
+  colB.appendChild(makeOrgNode(nMap['B']));
+  colB.appendChild(vl());
+  const hbarB=hl('210px');colB.appendChild(hbarB);
+  const l3B=row('center','8px');
+  const cE=col();cE.appendChild(vl());cE.appendChild(makeOrgNode(nMap['E']));l3B.appendChild(cE);
+  const cF=col();cF.appendChild(vl());cF.appendChild(makeOrgNode(nMap['F']));l3B.appendChild(cF);
+  colB.appendChild(l3B);
+
+  // Under C: YOU + G
+  const colC=col('center','0 0 210px');
+  colC.appendChild(vl());
+  colC.appendChild(makeOrgNode(nMap['C'],'mgr'));
+  colC.appendChild(vl());
+  const hbarC=hl('210px');colC.appendChild(hbarC);
+  const l3C=row('center','8px');
+  const cYou=col();cYou.appendChild(vl(true));cYou.appendChild(makeYouNode());l3C.appendChild(cYou);
+  const cG=col();cG.appendChild(vl());cG.appendChild(makeOrgNode(nMap['G']));l3C.appendChild(cG);
+  colC.appendChild(l3C);
+
+  // Under D: H
+  const colD=col('center','0 0 210px');
+  colD.appendChild(vl());
+  colD.appendChild(makeOrgNode(nMap['D']));
+  colD.appendChild(vl());
+  const cH=col();cH.appendChild(vl());cH.appendChild(makeOrgNode(nMap['H']));
+  colD.appendChild(cH);
+
+  l2row.appendChild(colB);l2row.appendChild(colC);l2row.appendChild(colD);
+  wrap.appendChild(l2row);
+
+  // Anh I: standalone
+  const iRow=document.createElement('div');
+  iRow.style.cssText='display:flex;align-items:center;gap:12px;margin-top:16px;';
+  const iNote=document.createElement('div');
+  iNote.style.cssText='font-size:10px;color:var(--text3);';
+  iNote.textContent='* Báo cáo trực tiếp CEO';
+  iRow.appendChild(iNote);
+  iRow.appendChild(makeOrgNode(nMap['I']));
+  wrap.appendChild(iRow);
+
+  tree.appendChild(wrap);
+}
+
+// ═══════════ GAME RENDER ═══════════
+function startGame(){
+  initState();
+  document.getElementById('orgchart-screen').classList.remove('active');
+  document.getElementById('game').classList.add('active');
+  renderGame();
+}
+
+function renderGame(){
+  renderNPCGrid();renderActionList();renderLog();renderNetworkBadges();
+  document.getElementById('turn-display').textContent=state.turn;
+  document.getElementById('win-count').textContent=state.npcs.filter(n=>n.pct>=100).length;
+}
+
+function renderNetworkBadges(){
+  const el=document.getElementById('network-badges');
+  if(!el)return;
+  el.innerHTML='';
+  state.networks.social.forEach(net=>{
+    if(!net.revealed)return;
+    const b=document.createElement('div');
+    b.style.cssText=`font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;background:${net.color}22;color:${net.color};border:1px solid ${net.color}44`;
+    b.title=`${net.name}: ${net.members.map(id=>state.npcs.find(n=>n.id===id)?.name).join(', ')}`;
+    b.textContent=`🔗 ${net.name}`;
+    el.appendChild(b);
+  });
+  state.networks.political.forEach((net,i)=>{
+    if(!net.revealed)return;
+    const [p1,p2]=net.members.map(id=>state.npcs.find(n=>n.id===id)?.name);
+    const b=document.createElement('div');
+    b.style.cssText='font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.3)';
+    b.title=`Chính trị: ${p1} ↔ ${p2} (thù địch)`;
+    b.textContent=`⚡ ${p1} vs ${p2}`;
+    el.appendChild(b);
+  });
+}
+
+function renderNPCGrid(){
+  const grid=document.getElementById('npc-grid');grid.innerHTML='';
+  state.npcs.forEach(npc=>{
+    const pct=Math.min(100,Math.max(0,npc.pct));const adopted=pct>=100;
+    const card=document.createElement('div');
+    card.className='npc-card'+(adopted?' adopted':npc.isManager?' mgr-card':'');
+    card.id='npc-card-'+npc.id;
+    card.onclick=()=>toggleHint(npc.id);
+    const hintsHtml=npc.hints.map((h,i)=>i<npc.hintsUnlocked
+      ?`<div class="hint-row"><span class="hint-badge">H${i+1}</span><span>${h}</span></div>`
+      :`<div class="hint-row"><span class="hint-badge">H${i+1}</span><span class="hint-lock">Chưa mở khóa</span></div>`
+    ).join('');
+    card.innerHTML=`${adopted?'<div class="adopted-badge">✓</div>':npc.isManager?'<div class="mgr-badge">Manager</div>':''}
+      <div class="npc-card-top">
+        <div class="npc-av" style="background:${npc.bg};color:${npc.tc}">${npc.id}</div>
+        <div><div class="npc-name">${npc.name}</div><div class="npc-role">${npc.role}</div></div>
+      </div>
+      <div class="npc-bar-bg"><div class="npc-bar-fill" style="width:${pct}%;background:${npc.color}"></div></div>
+      <div class="npc-pct" style="color:${npc.color}">${Math.round(pct)}%</div>
+      <div class="hint-section" id="hint-${npc.id}">${hintsHtml}</div>`;
+    grid.appendChild(card);
+  });
+}
+
+function toggleHint(id){const el=document.getElementById('hint-'+id);if(el)el.style.display=el.style.display==='block'?'none':'block';}
+
+function renderActionList(){
+  const list=document.getElementById('action-list');list.innerHTML='';
+  state.actions.forEach(action=>{
+    const dis=isActionDisabled(action);const sel=state.selAction?.id===action.id;
+    const item=document.createElement('div');
+    item.className='action-item'+(dis?' disabled':'')+(sel?' selected':'');
+    item.onclick=()=>!dis&&selectAction(action.id);
+    const rem=action.maxUses!=null?action.maxUses-action.usedCount:null;
+    const lt=action.maxUses!=null?(rem<=0?'<span class="used-txt">Đã hết</span>':`<span class="limit-txt">${rem}/${action.maxUses}</span>`):'';
+    const sc={'all':'sa','1':'s1','2':'s2','3':'s3','lobby':'s1'}[action.scope]||'s1';
+    item.innerHTML=`<div class="action-item-name">${action.name}</div>
+      <div class="action-item-meta"><span class="sbadge ${sc}">${action.sl}</span>${lt}</div>`;
+    list.appendChild(item);
+  });
+}
+
+function isActionDisabled(a){
+  if(a.maxUses!=null&&a.usedCount>=a.maxUses) return true;
+  if(a.id==='ceo_order'){const nA=state.npcs.find(n=>n.id==='A');if(nA&&nA.pct<=25)return true;}
+  return false;
+}
+
+function selectAction(id){
+  state.selAction=state.actions.find(a=>a.id===id);
+  state.selTargets=[];state.selLobbyist=null;
+  renderActionList();renderTargetSelector();updateConfirmBtn();
+}
+
+function renderTargetSelector(){
+  const action=state.selAction;
+  const label=document.getElementById('target-label');
+  const sel=document.getElementById('target-selector');
+  sel.innerHTML='';
+  if(!action){label.textContent='Chọn hành động trước';return;}
+
+  if(action.scope==='all'){
+    label.textContent='Tác động toàn bộ nhân vật chưa đạt 100%';
+    state.selTargets=state.npcs.filter(n=>n.pct<100).map(n=>n.id);
+    updateConfirmBtn();return;
+  }
+  if(action.special==='hint'){
+    label.textContent='Chọn tối đa 2 người:';
+    sel.appendChild(buildBtns(action,2,true));return;
+  }
+  if(action.special==='lobby'){
+    label.textContent='Ai đi vận động? (% của họ quyết định hiệu quả):';
+    const lw=document.createElement('div');lw.style.cssText='display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px';
+    state.npcs.forEach(npc=>{
+      if(npc.id==='A') return; // CEO cannot lobby
+      // Cannot send higher-level person to lobby lower-level (can only lobby up or same level)
+      // lobbyist.level >= target.level is NOT allowed (higher rank lobbying lower rank)
+      // so lobbyist must be: same level or lower level than target
+      // We filter targets below based on lobbyist selection, not lobbyists here
+      const lobbyCount=state.lobbyCount[npc.id]||0;
+      const maxed=lobbyCount>=3;
+      const btn=makeTBtn(npc.name+(maxed?' (hết lượt)':''),state.selLobbyist===npc.id,()=>{
+        if(maxed)return;
+        state.selLobbyist=npc.id;renderTargetSelector();updateConfirmBtn();
+      },npc.color,maxed);
+      lw.appendChild(btn);
+    });
+    sel.appendChild(lw);
+    const lbl2=document.createElement('div');
+    lbl2.style.cssText='font-size:11px;color:var(--text2);margin-bottom:6px';
+    lbl2.textContent='Người cần được vận động:';
+    sel.appendChild(lbl2);
+    const tw=document.createElement('div');tw.style.cssText='display:flex;flex-wrap:wrap;gap:4px';
+    state.npcs.forEach(npc=>{
+      if(state.selLobbyist===npc.id)return;
+      const noC=npc.lastLobbyedBy&&npc.lastLobbyedBy[state.selLobbyist]===state.turn-1;
+      const pp=canTarget(action,npc.id);
+      // Hierarchy: lobbyist can only lobby same-level or higher-level targets
+      const lobbyistNpc=state.npcs.find(n=>n.id===state.selLobbyist);
+      const hierarchyOk=!lobbyistNpc||lobbyistNpc.level>=npc.level; // lobbyist.level >= target.level means lobbyist is lower or equal rank
+      const ok=pp&&!noC&&hierarchyOk;
+      const reason=!hierarchyOk?` (cấp cao hơn)`:!pp?' (hết lượt)':noC?' (vừa lobby)':'';
+      const btn=makeTBtn(npc.name+reason,state.selTargets.includes(npc.id),()=>{
+        if(!ok)return;
+        state.selTargets=[npc.id];renderTargetSelector();updateConfirmBtn();
+      },npc.color,!ok);
+      tw.appendChild(btn);
+    });
+    sel.appendChild(tw);
+    return;
+  }
+
+  const max=parseInt(action.scope)||3;
+  label.textContent=`Chọn tối đa ${max} người (gồm cả người đã 100%):`;
+  sel.appendChild(buildBtns(action,max,true));
+}
+
+function buildBtns(action,max,allowAdopted){
+  const wrap=document.createElement('div');wrap.style.cssText='display:flex;flex-wrap:wrap;gap:4px';
+  state.npcs.forEach(npc=>{
+    if(npc.pct>=100&&!allowAdopted)return;
+    const ok=canTarget(action,npc.id)&&!isNoConsec(action,npc.id);
+    const isSel=state.selTargets.includes(npc.id);
+    const btn=makeTBtn(npc.name+(npc.pct>=100?' ✓':''),isSel,()=>{
+      if(!ok)return;
+      if(isSel)state.selTargets=state.selTargets.filter(x=>x!==npc.id);
+      else if(state.selTargets.length<max)state.selTargets.push(npc.id);
+      renderTargetSelector();updateConfirmBtn();
+    },npc.color,!ok);
+    wrap.appendChild(btn);
+  });
+  return wrap;
+}
+
+function makeTBtn(text,active,onclick,color,dim){
+  const btn=document.createElement('button');
+  btn.className='tbtn'+(active?' sel':'')+(dim?' dim':'');
+  if(active)btn.style.borderColor=color||'var(--amber)';
+  btn.textContent=text;btn.onclick=onclick;return btn;
+}
+
+function canTarget(action,id){
+  const npc=state.npcs.find(n=>n.id===id);if(!npc)return false;
+  if(action.perPersonMax){const c=npc.perActionCount[action.id]||0;if(c>=action.perPersonMax)return false;}
+  return true;
+}
+function isNoConsec(action,id){
+  if(!action.noConsec)return false;
+  const npc=state.npcs.find(n=>n.id===id);
+  return npc&&npc.lastAction===action.id;
+}
+function updateConfirmBtn(){
+  const btn=document.getElementById('confirm-btn');const a=state.selAction;
+  if(!a){btn.disabled=true;return;}
+  if(a.scope==='all'){btn.disabled=false;return;}
+  if(a.special==='lobby'){btn.disabled=!state.selLobbyist||state.selTargets.length===0;return;}
+  btn.disabled=state.selTargets.length===0;
+}
+
+// ═══════════ EXECUTE ═══════════
+function confirmAction(){
+  const action=state.selAction;if(!action||state.gameOver)return;
+  const feedArea=document.getElementById('feedback-area');feedArea.innerHTML='';
+  const results=[];
+
+  if(action.scope==='all'&&action.special==='blog'){
+    // Blog: trial+ positive, below trial negative
+    state.npcs.forEach(npc=>{
+      if(npc.pct>=100) return;
+      const stage=getStage(npc.pct);
+      const effBlog=(stage==='trial'||stage==='adoption')?action.eff[stage]:action.eff[stage];
+      results.push(applyActionWithEff(action,npc,effBlog));
+    });
+  } else if(action.special==='network_q'){
+    // 40% chance to reveal a social network
+    const tgt=state.npcs.find(n=>n.id===state.selTargets[0]);
+    if(tgt){
+      tgt.networkQAsked=true;
+      if(!tgt.perActionCount)tgt.perActionCount={};
+      tgt.perActionCount['network_q']=(tgt.perActionCount['network_q']||0)+1;
+      if(Math.random()<0.4){
+        // find unrevealed network containing this person or any
+        const unrevealed=state.networks.social.filter(net=>!net.revealed);
+        if(unrevealed.length>0){
+          const net=unrevealed[Math.floor(Math.random()*unrevealed.length)];
+          net.revealed=true;
+          results.push({npc:tgt,delta:0,positive:null,
+            feedback:`${tgt.name} chia sẻ thông tin: Có một nhóm <strong style="color:${net.color}">${net.name}</strong> gồm các thành viên ${net.members.map(id=>state.npcs.find(n=>n.id===id)?.name).join(', ')}. Từ giờ, tác động lên bất kỳ ai trong nhóm sẽ lan sang cả nhóm!`});
+        } else {
+          results.push({npc:tgt,delta:0,positive:null,feedback:`${tgt.name} không biết thêm thông tin về mạng lưới nào khác.`});
+        }
+      } else {
+        results.push({npc:tgt,delta:0,positive:null,feedback:`${tgt.name}: "Tôi không quan tâm lắm đến chuyện mạng lưới nội bộ. Chúng ta có thể nói về công việc không?"`});
+      }
+    }
+  } else if(action.special==='political_q'){
+    const tgt=state.npcs.find(n=>n.id===state.selTargets[0]);
+    if(tgt){
+      tgt.politicalQAsked=true;
+      if(!tgt.perActionCount)tgt.perActionCount={};
+      tgt.perActionCount['political_q']=(tgt.perActionCount['political_q']||0)+1;
+      if(Math.random()<0.4){
+        const unrevealed=state.networks.political.filter(net=>!net.revealed);
+        if(unrevealed.length>0){
+          const net=unrevealed[Math.floor(Math.random()*unrevealed.length)];
+          net.revealed=true;
+          const [p1,p2]=net.members.map(id=>state.npcs.find(n=>n.id===id)?.name);
+          results.push({npc:tgt,delta:0,positive:null,
+            feedback:`${tgt.name} nói nhỏ: "${p1} và ${p2} không ưa nhau lắm. Nếu bạn tác động tích cực lên một người, người kia sẽ phản ứng ngược lại — và ngược lại."`});
+        } else {
+          results.push({npc:tgt,delta:0,positive:null,feedback:`${tgt.name} không biết thêm chuyện chính trị nội bộ nào khác.`});
+        }
+      } else {
+        results.push({npc:tgt,delta:0,positive:null,feedback:`${tgt.name}: "Tôi không thích nói về chuyện chính trị công ty. Chúng ta hãy tập trung vào công việc."`});
+      }
+    }
+  } else if(action.scope==='all'){
+    state.npcs.forEach(npc=>{if(npc.pct<100)results.push(applyAction(action,npc));});
+  } else if(action.special==='hint'){
+    state.selTargets.forEach(id=>{
+      const npc=state.npcs.find(n=>n.id===id);
+      if(npc&&npc.hintsUnlocked<3){npc.hintsUnlocked++;results.push({npc,delta:0,positive:null,feedback:`Bạn tìm hiểu thêm về ${npc.name}.`});}
+      else if(npc)results.push({npc,delta:0,positive:null,feedback:`${npc.name}: Không còn thông tin mới.`});
+    });
+  } else if(action.special==='lobby'){
+    const tgt=state.npcs.find(n=>n.id===state.selTargets[0]);
+    const lbt=state.npcs.find(n=>n.id===state.selLobbyist);
+    if(tgt&&lbt){
+      const r=applyLobby(lbt,tgt);results.push(r);
+      if(!tgt.lastLobbyedBy)tgt.lastLobbyedBy={};
+      tgt.lastLobbyedBy[lbt.id]=state.turn;
+      state.lobbyCount[lbt.id]=(state.lobbyCount[lbt.id]||0)+1;
+    }
+  } else {
+    state.selTargets.forEach(id=>{const npc=state.npcs.find(n=>n.id===id);if(npc)results.push(applyAction(action,npc));});
+  }
+
+  if(action.maxUses!=null)action.usedCount++;
+  if(action.noConsec&&action.special!=='lobby'){
+    state.npcs.forEach(npc=>{
+      if(state.selTargets.includes(npc.id))npc.lastAction=action.id;
+      else if(npc.lastAction===action.id)npc.lastAction=null;
+    });
+  }
+
+  // stats — 1 record per turn (not per NPC)
+  if(!state.actionStats[action.id])state.actionStats[action.id]={name:action.name,uses:[]};
+  const anyPos=results.some(r=>r.delta>0);
+  const anyNeg=results.some(r=>r.delta<0);
+  const sumDelta=results.reduce((s,r)=>s+(r.delta||0),0);
+  state.actionStats[action.id].uses.push({
+    turn:state.turn,
+    positive:anyPos,
+    negative:anyNeg,
+    sumDelta,
+    targets:results.map(r=>r.npc.id)
+  });
+
+  results.slice(0,3).forEach(r=>{
+    const fb=document.createElement('div');
+    const cls=r.delta>0?'fb-pos':r.delta<0?'fb-neg':'fb-neu';
+    fb.className='fb-box '+cls;
+    const ds=r.delta>0?`(+${Math.round(r.delta)}%)`:r.delta<0?`(${Math.round(r.delta)}%)`:'';
+    fb.innerHTML=`<div class="fb-who">${r.npc.name} ${ds}</div>${r.feedback||''}`;
+    feedArea.appendChild(fb);
+    // Show network ripple
+    if(r.networkResults&&r.networkResults.length>0){
+      r.networkResults.forEach(nr=>{
+        const nfb=document.createElement('div');
+        nfb.className='fb-box '+(nr.delta>0?'fb-pos':'fb-neg');
+        nfb.style.marginLeft='12px';nfb.style.fontSize='11px';
+        nfb.innerHTML=`<div class="fb-who">${nr.npc.name} ${nr.delta>0?'+':''}${Math.round(nr.delta)}%</div>${nr.feedback||''}`;
+        feedArea.appendChild(nfb);
+      });
+    }
+  });
+
+  const lt=`Lượt ${state.turn}: ${action.name}${action.special==='lobby'&&state.selLobbyist?' (qua '+state.npcs.find(n=>n.id===state.selLobbyist)?.name+')':''} → ${results.slice(0,5).map(r=>`${r.npc.name} ${r.delta>0?`<span class="lp">+${Math.round(r.delta||0)}%</span>`:r.delta<0?`<span class="ln">${Math.round(r.delta||0)}%</span>`:`<span class="lz">0%</span>`}`).join(', ')}`;
+  state.log.unshift(lt);if(state.log.length>12)state.log.pop();
+
+  // adoption timeline
+  const adopted=state.npcs.filter(n=>n.pct>=100).length;
+  state.adoptionTimeline.push({turn:state.turn,count:adopted});
+  // check newly adopted
+  state.npcs.forEach(n=>{if(n.pct>=100&&!n.adoptedTurn)n.adoptedTurn=state.turn;});
+
+  state.turn++;state.selAction=null;state.selTargets=[];state.selLobbyist=null;
+
+  const npcA=state.npcs.find(n=>n.id==='A');
+  if(adopted>=5&&npcA.pct>=100){endGame(true);return;}
+  if(state.turn>30){endGame(false);return;}
+
+  renderGame();
+  document.getElementById('confirm-btn').disabled=true;
+  document.getElementById('target-label').textContent='Chọn hành động trước';
+  document.getElementById('target-selector').innerHTML='';
+}
+
+function applyActionWithEff(action,npc,eff){
+  if(npc.pct>=100)return{npc,delta:0,positive:false,feedback:'Họ đã hoàn toàn ủng hộ!'};
+  const stage=getStage(npc.pct);
+  // 20% random bad luck: flip positive to negative
+  let finalEff=eff;
+  let badLuck=false;
+  if(eff>0&&Math.random()<0.15){finalEff=-Math.round(eff*0.5+2);badLuck=true;}
+  const old=npc.pct;
+  npc.pct=Math.max(0,Math.min(100,npc.pct+finalEff));
+  const delta=npc.pct-old;
+  if(!npc.perActionCount)npc.perActionCount={};
+  npc.perActionCount[action.id]=(npc.perActionCount[action.id]||0)+1;
+  const pool=finalEff>0?FB.pos[stage]:FB.neg[stage];
+  let feedback=pool[Math.floor(Math.random()*pool.length)];
+  if(badLuck) feedback='[Xui xẻo] '+feedback;
+  npc.actionHistory.push({turn:state.turn,actionName:action.name,delta,positive:finalEff>0});
+  // Network ripple effects
+  const networkResults=[];
+  if(delta!==0){
+    // Social networks: if revealed, ripple to other members
+    state.networks.social.forEach(net=>{
+      if(!net.revealed)return;
+      if(!net.members.includes(npc.id))return;
+      net.members.forEach(mid=>{
+        if(mid===npc.id)return;
+        const m=state.npcs.find(n=>n.id===mid);
+        if(!m||m.pct>=100)return;
+        const ripple=Math.round(delta*0.4+(delta>0?1:-1)); // smaller ripple
+        const oldM=m.pct;
+        m.pct=Math.max(0,Math.min(100,m.pct+ripple));
+        const md=m.pct-oldM;
+        if(md!==0){
+          m.actionHistory.push({turn:state.turn,actionName:`Hiệu ứng mạng lưới (${net.name})`,delta:md,positive:md>0});
+          networkResults.push({npc:m,delta:md,positive:md>0,feedback:`[${net.name}] Ảnh hưởng lan từ ${npc.name}: ${md>0?'+':''}${Math.round(md)}%`});
+        }
+      });
+    });
+    // Political networks: if revealed, opposite effect on enemy
+    state.networks.political.forEach(net=>{
+      if(!net.revealed)return;
+      if(!net.members.includes(npc.id))return;
+      const enemyId=net.members.find(id=>id!==npc.id);
+      const enemy=state.npcs.find(n=>n.id===enemyId);
+      if(!enemy||enemy.pct>=100)return;
+      const opposite=-Math.round(delta*0.6);
+      const oldE=enemy.pct;
+      enemy.pct=Math.max(0,Math.min(100,enemy.pct+opposite));
+      const ed=enemy.pct-oldE;
+      if(ed!==0){
+        enemy.actionHistory.push({turn:state.turn,actionName:`Hiệu ứng chính trị (thù địch với ${npc.name})`,delta:ed,positive:ed>0});
+        networkResults.push({npc:enemy,delta:ed,positive:ed>0,feedback:`[Chính trị] ${enemy.name} phản ứng ngược với ${npc.name}: ${ed>0?'+':''}${Math.round(ed)}%`});
+      }
+    });
+  }
+  return{npc,delta,positive:finalEff>0,feedback,networkResults};
+}
+
+function applyAction(action,npc){
+  const stage=getStage(npc.pct);
+  const eff=action.eff[stage];
+  return applyActionWithEff(action,npc,eff);
+}
+
+function applyLobby(lobbyist,target){
+  if(target.pct>=100)return{npc:target,delta:0,positive:false,feedback:'Họ đã hoàn toàn ủng hộ!'};
+  const lp=Math.min(100,lobbyist.pct);
+  const stage=getStage(target.pct);
+  let eff;
+  if(lp<50){eff=-(Math.round(3+(50-lp)/10));}
+  else{eff=Math.round(3+(lp-50)/50*12);}
+  // 20% random bad luck on lobby too
+  let finalEff=eff;
+  if(eff>0&&Math.random()<0.15){finalEff=-Math.round(eff*0.5+2);}
+  const old=target.pct;
+  target.pct=Math.max(0,Math.min(100,target.pct+finalEff));
+  const delta=target.pct-old;
+  if(!target.perActionCount)target.perActionCount={};
+  target.perActionCount['lobby']=(target.perActionCount['lobby']||0)+1;
+  const who=lobbyist.name;
+  const fpool=finalEff>0
+    ?[`Sau khi nói chuyện với ${who}, tôi cũng thấy có lý hơn.`,`${who} vừa giải thích — tôi muốn tìm hiểu thêm.`,`${who} nói tốt về dự án. Để tôi cân nhắc.`]
+    :[`Ngay cả ${who} cũng chưa hiểu rõ điều này.`,`${who} có vẻ không chắc chắn. Tôi chưa bị thuyết phục.`,`Tôi cần nghe từ người khác nữa.`];
+  const feedback=fpool[Math.floor(Math.random()*fpool.length)];
+  target.actionHistory.push({turn:state.turn,actionName:`Lobby bởi ${who}`,delta,positive:finalEff>0});
+  // Network ripple for lobby too
+  const networkResults=[];
+  if(delta!==0){
+    const fakeAction={id:'lobby',eff:{awareness:0,interest:0,trial:0,adoption:0}};
+    state.networks.social.forEach(net=>{
+      if(!net.revealed||!net.members.includes(target.id))return;
+      net.members.forEach(mid=>{
+        if(mid===target.id)return;
+        const m=state.npcs.find(n=>n.id===mid);
+        if(!m||m.pct>=100)return;
+        const ripple=Math.round(delta*0.4+(delta>0?1:-1));
+        const oldM=m.pct;m.pct=Math.max(0,Math.min(100,m.pct+ripple));
+        const md=m.pct-oldM;
+        if(md!==0){m.actionHistory.push({turn:state.turn,actionName:`Hiệu ứng mạng lưới (${net.name})`,delta:md,positive:md>0});
+          networkResults.push({npc:m,delta:md,positive:md>0,feedback:`[${net.name}] ${md>0?'+':''}${Math.round(md)}%`});}
+      });
+    });
+    state.networks.political.forEach(net=>{
+      if(!net.revealed||!net.members.includes(target.id))return;
+      const eid=net.members.find(id=>id!==target.id);
+      const enemy=state.npcs.find(n=>n.id===eid);
+      if(!enemy||enemy.pct>=100)return;
+      const opp=-Math.round(delta*0.6);
+      const oldE=enemy.pct;enemy.pct=Math.max(0,Math.min(100,enemy.pct+opp));
+      const ed=enemy.pct-oldE;
+      if(ed!==0){enemy.actionHistory.push({turn:state.turn,actionName:`Chính trị (thù địch với ${target.name})`,delta:ed,positive:ed>0});
+        networkResults.push({npc:enemy,delta:ed,positive:ed>0,feedback:`[Chính trị] ${enemy.name}: ${ed>0?'+':''}${Math.round(ed)}%`});}
+    });
+  }
+  return{npc:target,delta,positive:finalEff>0,feedback,networkResults};
+}
+
+function renderLog(){document.getElementById('action-log').innerHTML=state.log.map(l=>`<div class="log-item">${l}</div>`).join('');}
+
+// ═══════════ REPORT ═══════════
+function endGame(won){
+  state.gameOver=true;state.won=won;
+  state.npcs.forEach(n=>{if(n.pct>=100&&!n.adoptedTurn)n.adoptedTurn=state.turn-1;});
+  document.getElementById('game').classList.remove('active');
+  document.getElementById('report').classList.add('active');
+  buildReport(won);
+}
+
+function buildReport(won){
+  const adopted=state.npcs.filter(n=>n.pct>=100).length;
+  const npcA=state.npcs.find(n=>n.id==='A');
+  const avg=Math.round(state.npcs.reduce((s,n)=>s+Math.min(100,n.pct),0)/state.npcs.length);
+  const turnsUsed=state.turn-1;
+
+  // Compute 3 metrics
+  const totalUses=Object.values(state.actionStats).reduce((s,v)=>s+v.uses.length,0);
+  const totalPos=Object.values(state.actionStats).reduce((s,v)=>s+v.uses.filter(u=>u.positive).length,0);
+  // totalUses should equal turnsUsed (30 max)
+  const adoptionRate=Math.round(adopted/8*100);
+  const actionEffRate=totalUses>0?Math.round(totalPos/totalUses*100):0;
+  const lobbyUses=Object.values(state.actionStats).reduce((s,v)=>s+(v.uses.filter(u=>u.targetId).length||0),0);
+  // Network score: 0 if no network revealed, +25% per revealed network (4 total: 2 social + 2 political)
+  const revealedSocial=state.networks.social.filter(n=>n.revealed).length;
+  const revealedPolitical=state.networks.political.filter(n=>n.revealed).length;
+  const totalRevealed=revealedSocial+revealedPolitical;
+  const networkScore=Math.round(totalRevealed/4*100); // 0, 25, 50, 75, 100
+
+  // Proficiency score 1-10, default baseline 5
+  // Based on avg buy-in vs starting avg: each +20% above start → +1 level, each -20% → -1 level
+  const startAvg=Math.round(state.npcs.reduce((s,n)=>s+n.startPct,0)/state.npcs.length);
+  const deltaAvg=avg-startAvg; // how much avg buy-in changed from baseline
+  const levelDelta=Math.round(deltaAvg/20); // each 20% change = 1 level
+  const score=Math.min(10,Math.max(1,5+levelDelta));
+
+  // Proficiency labels aligned with competency framework
+  const scoreDefs=[
+    '',
+    {label:'Mới bắt đầu (Level 1)',desc:'Chưa có khái niệm về stakeholder mapping. Hành động chủ yếu mang tính thử-sai, chưa có chiến lược rõ ràng.'},
+    {label:'Nhận thức (Level 2)',desc:'Bắt đầu nhận ra sự khác biệt giữa các stakeholder nhưng chưa điều chỉnh được cách tiếp cận theo từng người.'},
+    {label:'Đang phát triển (Level 3)',desc:'Có thể phân biệt được một số phong cách tiếp cận nhưng còn lúng túng khi gặp phản ứng không như kỳ vọng.'},
+    {label:'Áp dụng được (Level 4)',desc:'Biết vận dụng các công cụ ảnh hưởng cơ bản. Đôi khi chọn đúng hành động nhưng chưa nhất quán theo từng giai đoạn AIDA.'},
+    {label:'Có năng lực (Level 5)',desc:'Hiểu được các giai đoạn AIDA và điều chỉnh hành động phù hợp. Xây dựng được một số liên minh cốt lõi.'},
+    {label:'Thành thạo (Level 6)',desc:'Chủ động xây dựng coalition, biết tận dụng mạng lưới và vận động hành lang một cách có chiến lược.'},
+    {label:'Nâng cao (Level 7)',desc:'Đọc tốt tính cách và động lực của từng stakeholder. Sử dụng hiệu quả cả ảnh hưởng trực tiếp lẫn gián tiếp.'},
+    {label:'Chuyên sâu (Level 8)',desc:'Dẫn dắt được sự thay đổi mà không cần quyền hành chính thức. Xây dựng được momentum lan tỏa trong tổ chức.'},
+    {label:'Hình mẫu (Level 9)',desc:'Có khả năng định hình văn hóa chấp nhận thay đổi. Tạo được liên minh bền vững vượt qua các rào cản chính trị nội bộ.'},
+    {label:'Bậc thầy (Level 10)',desc:'Thuyết phục toàn bộ tổ chức một cách tự nhiên, không cưỡng ép. Mọi hành động đều chính xác và đúng thời điểm.'},
+  ];
+  const scoreLabel=scoreDefs[score]?.label||'Có năng lực (Level 5)';
+  const scoreDescFull=scoreDefs[score]?.desc||'';
+  const scoreColor=score>=8?'#10b981':score>=6?'#f59e0b':score>=4?'#06b6d4':'#ef4444';
+
+  // Action stats computed
+  const astats=Object.entries(state.actionStats).map(([id,v])=>{
+    const pos=v.uses.filter(u=>u.positive).length;
+    const neg=v.uses.filter(u=>u.negative&&!u.positive).length;
+    return{id,name:v.name,total:v.uses.length,pos,neg,posRate:v.uses.length?Math.round(pos/v.uses.length*100):0};
+  }).filter(x=>x.total>0);
+
+  const mostUsed=astats.length?astats.reduce((a,b)=>b.total>a.total?b:a):null;
+  const mostPos=astats.filter(x=>x.pos>0).length?astats.filter(x=>x.pos>0).reduce((a,b)=>b.pos>a.pos?b:a):null;
+  const mostNeg=astats.filter(x=>x.neg>0).length?astats.filter(x=>x.neg>0).reduce((a,b)=>b.neg>a.neg?b:a):null;
+
+  // Key insights
+  const insights=[];
+  if(won)insights.push({type:'good',title:'Hoàn thành mục tiêu!',text:`Bạn thuyết phục được ${adopted}/8 người trong ${turnsUsed} ngày. Điều này cho thấy khả năng tạo liên minh và gây ảnh hưởng mà không cần quyền hành.`});
+  else insights.push({type:'bad',title:'Chưa đạt mục tiêu',text:`Kết thúc ${turnsUsed} ngày với ${adopted}/8 người đồng thuận. ${!npcA||npcA.pct<100?'Bà A chưa đồng thuận là rào cản lớn nhất.':'Cần thêm 1-2 người nữa để đạt ngưỡng thắng.'}`});
+  if(actionEffRate>=70)insights.push({type:'good',title:'Lựa chọn hành động tốt',text:`${actionEffRate}% hành động của bạn mang lại kết quả tích cực — bạn đã đọc khá chính xác phản ứng của từng stakeholder.`});
+  else insights.push({type:'bad',title:'Cần cải thiện lựa chọn hành động',text:`Chỉ ${actionEffRate}% hành động tích cực. Hãy chú ý quan sát phản ứng và điều chỉnh chiến lược theo giai đoạn của từng người.`});
+  if(networkScore>0)insights.push({type:'tip',title:'Về vận động hành lang',text:'Khi nhờ người có % cao đi lobby, hiệu quả tăng đáng kể. Hãy ưu tiên xây dựng vài đồng minh cốt lõi trước rồi dùng họ để tác động những người khó thuyết phục hơn.'});
+  insights.push({type:'tip',title:'Triết lý Leading Without Authority',text:'Ảnh hưởng thực sự không đến từ chức danh — mà từ sự hiểu biết sâu về stakeholder, chọn đúng hành động vào đúng thời điểm, và xây dựng liên minh từng bước.'});
+
+  const html=`
+  <div class="rpt-cover">
+    <div class="rpt-cover-tag">Báo cáo kết quả · Leading Without Authority</div>
+    <div class="rpt-cover-title">${won?'Dự án được thông qua!':'Dự án chưa hoàn thành'}</div>
+    <div class="rpt-cover-sub">Minh Phát Group · Kết thúc sau ${turnsUsed}/30 ngày · ${new Date().toLocaleDateString('vi-VN')}</div>
+  </div>
+
+  <div class="rpt-section">
+    <div class="rpt-section-title">Năng lực ảnh hưởng tổng thể</div>
+    <div class="score-gauge-wrap">
+      <div class="score-circle" style="background:${scoreColor}22;color:${scoreColor};border:4px solid ${scoreColor}">${score}</div>
+      <div style="flex:1">
+        <div style="font-size:15px;font-weight:700;margin-bottom:6px;color:${scoreColor}">${scoreLabel}</div>
+        <div class="score-level-bar" style="width:100%;max-width:320px;margin-bottom:8px">
+          ${[1,2,3,4,5,6,7,8,9,10].map(i=>`<div class="slb-seg" style="background:${i<=score?scoreColor:'rgba(255,255,255,.1)'}"></div>`).join('')}
+        </div>
+        <div class="score-desc">${scoreDescFull}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">Điểm gốc: 5 · Thay đổi: ${deltaAvg>=0?'+':''}${deltaAvg}% buy-in TB → ${levelDelta>=0?'+':''}${levelDelta} cấp độ</div>
+      </div>
+    </div>
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-circle" style="border-color:var(--green);color:var(--green)">${adoptionRate}%</div>
+        <div class="metric-name">Mức độ adoption</div>
+        <div class="metric-desc">${adopted}/8 người đồng thuận hoàn toàn. ${adoptionRate>=60?'Tốt!':'Cần cải thiện khả năng đọc đặc điểm từng stakeholder.'}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-circle" style="border-color:var(--blue);color:var(--blue)">${actionEffRate}%</div>
+        <div class="metric-name">Hành động & Tác động</div>
+        <div class="metric-desc">${actionEffRate}% hành động mang lại kết quả tích cực. ${actionEffRate>=70?'Bạn đã dự đoán khá chính xác phản ứng của stakeholder.':'Cần lựa chọn hành động phù hợp hơn với từng giai đoạn.'}</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-circle" style="border-color:var(--amber);color:var(--amber)">${networkScore}%</div>
+        <div class="metric-name">Khám phá mạng lưới</div>
+        <div class="metric-desc">${totalRevealed}/4 mạng lưới được khám phá. ${networkScore===0?'Hãy dùng hành động "Hỏi về mạng lưới/chính trị" để khám phá!':networkScore===100?'Xuất sắc — bạn nắm được toàn bộ mạng lưới tổ chức!':'Còn '+(4-totalRevealed)+' mạng lưới chưa khám phá.'}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="rpt-section">
+    <div class="rpt-section-title">Tổng quan số liệu</div>
+    <div class="stat-grid">
+      <div class="stat-item"><div class="stat-num">${adopted}/8</div><div class="stat-label">Người adoption</div></div>
+      <div class="stat-item"><div class="stat-num">${avg}%</div><div class="stat-label">% buy-in TB</div></div>
+      <div class="stat-item"><div class="stat-num">${turnsUsed}</div><div class="stat-label">Lượt đã dùng</div></div>
+      <div class="stat-item"><div class="stat-num">${totalUses}</div><div class="stat-label">Tổng hành động</div></div>
+    </div>
+  </div>
+
+  <div class="rpt-section">
+    <div class="rpt-section-title">Mức độ đồng thuận từng người</div>
+    ${state.npcs.map(n=>{
+      const pct=Math.min(100,Math.round(n.pct));
+      return`<div class="npc-rpt-row">
+        <div style="width:24px;height:24px;border-radius:50%;background:${n.bg};color:${n.tc};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${n.id}</div>
+        <div style="flex:0 0 115px;font-size:12px;font-weight:600">${n.name}${n.isManager?'<span style="font-size:9px;color:var(--blue);margin-left:3px">★</span>':''}</div>
+        <div class="npc-rpt-bar-bg"><div class="npc-rpt-bar-fill" style="width:${pct}%;background:${n.color}"></div></div>
+        <div style="font-size:13px;font-weight:700;color:${n.color};min-width:36px;text-align:right">${pct}%</div>
+        ${pct>=100?`<span style="font-size:9px;background:var(--green);color:#fff;padding:2px 5px;border-radius:99px;margin-left:4px;flex-shrink:0">Adopted${n.adoptedTurn?' · N'+n.adoptedTurn:''}</span>`:''}
+      </div>`;
+    }).join('')}
+  </div>
+
+  <div class="rpt-section">
+    <div class="rpt-section-title">Thống kê hành động</div>
+    <div class="ar-header">
+      <div>Hành động</div><div style="text-align:center">Tổng</div><div style="text-align:center;color:var(--green)">Tích cực</div><div style="text-align:center;color:var(--red)">Tiêu cực</div><div style="text-align:center">Tỉ lệ +</div>
+    </div>
+    ${astats.length===0?'<div style="font-size:12px;color:var(--text3);padding:8px">Chưa có dữ liệu.</div>':
+      astats.map(s=>{
+        const isMost=mostUsed&&s.id===mostUsed.id;
+        const isPos=mostPos&&s.id===mostPos.id;
+        const isNeg=mostNeg&&s.id===mostNeg.id;
+        const cls=isMost?'ar-hl-most':isPos?'ar-hl-pos':isNeg?'ar-hl-neg':'';
+        const badges=(isMost?`<span class="hl-badge" style="background:rgba(245,158,11,.15);color:var(--amber)">Dùng nhiều nhất</span>`:'')
+          +(isPos?`<span class="hl-badge" style="background:rgba(16,185,129,.15);color:var(--green)">Hiệu quả nhất</span>`:'')
+          +(isNeg?`<span class="hl-badge" style="background:rgba(239,68,68,.15);color:var(--red)">Tiêu cực nhất</span>`:'');
+        return`<div class="ar-row ${cls}">
+          <div style="font-size:12px;color:var(--text)">${s.name}${badges}</div>
+          <div style="text-align:center;color:var(--text2);font-weight:600">${s.total}</div>
+          <div style="text-align:center;color:var(--green);font-weight:600">+${s.pos}</div>
+          <div style="text-align:center;color:var(--red);font-weight:600">-${s.neg}</div>
+          <div style="text-align:center;font-size:11px;color:${s.posRate>=70?'var(--green)':s.posRate>=50?'var(--amber)':'var(--red)'};font-weight:700">${s.posRate}%</div>
+        </div>`;
+      }).join('')}
+  </div>
+
+  <div class="rpt-section">
+    <div class="rpt-section-title">Nhận xét & Khuyến nghị</div>
+    ${insights.map(i=>`<div class="insight-box ${i.type}">
+      <div class="insight-title">${i.type==='good'?'✅':i.type==='bad'?'⚠️':'💡'} ${i.title}</div>
+      <div class="insight-text">${i.text}</div>
+    </div>`).join('')}
+  </div>
+
+  <div class="rpt-section">
+    <div class="rpt-section-title">Lịch sử từng nhân vật</div>
+    ${state.npcs.map((n,i)=>`
+      <div>
+        <div class="hist-header" onclick="document.getElementById('nh${i}').classList.toggle('open')">
+          <div style="width:22px;height:22px;border-radius:50%;background:${n.bg};color:${n.tc};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">${n.id}</div>
+          <div style="font-size:13px;font-weight:600">${n.name}</div>
+          <div style="font-size:11px;color:var(--text3)">${n.actionHistory.length} hành động</div>
+          <div style="margin-left:auto;font-size:11px;color:var(--text3)">▼</div>
+        </div>
+        <div class="hist-body" id="nh${i}">
+          ${n.actionHistory.length===0?'<div style="font-size:12px;color:var(--text3)">Chưa có hành động nào.</div>':
+            n.actionHistory.map(h=>`<div class="hist-item">Lượt ${h.turn}: ${h.actionName} → <span style="color:${h.delta>0?'var(--green)':h.delta<0?'var(--red)':'var(--text3)'}">${h.delta>0?'+':''}${Math.round(h.delta)}%</span></div>`).join('')}
+        </div>
+        ${i<state.npcs.length-1?'<div style="border-bottom:1px solid var(--border);margin:2px 0"></div>':''}
+      </div>`).join('')}
+  </div>`;
+
+  document.getElementById('rpt-content').innerHTML=html;
+}
+
+function resetGame(){
+  document.getElementById('report').classList.remove('active');
+  document.getElementById('intro').classList.add('active');
+}
+</script>
+<style>
+  #pdf-report-panel {
+    display:none;
+    position:fixed;
+    left:-9999px;
+    top:0;
+    width:794px;
+    background:#ffffff;
+    font-family:'Be Vietnam Pro',Arial,sans-serif;
+    color:#1e293b;
+  }
+  .pdf-wrap { padding: 40px 48px; background:#fff; }
+  .pdf-header { background: linear-gradient(135deg,#0d2137,#0a3d2e); padding:28px 32px; border-radius:10px; margin-bottom:24px; }
+  .pdf-header-title { font-size:20px; font-weight:800; color:#fff; margin-bottom:4px; }
+  .pdf-header-sub { font-size:12px; color:rgba(255,255,255,.6); }
+  .pdf-section { margin-bottom:20px; }
+  .pdf-section-title { font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#f59e0b; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid #e2e8f0; }
+  .pdf-metrics { display:flex; gap:12px; margin-bottom:16px; }
+  .pdf-metric { flex:1; text-align:center; background:#f8fafc; border-radius:10px; padding:14px; border:1px solid #e2e8f0; }
+  .pdf-metric-num { font-size:22px; font-weight:800; margin-bottom:4px; }
+  .pdf-metric-label { font-size:10px; color:#64748b; text-transform:uppercase; letter-spacing:.5px; }
+  .pdf-score-row { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+  .pdf-score-circle { width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:800; flex-shrink:0; }
+  .pdf-npc-row { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px solid #f1f5f9; font-size:12px; }
+  .pdf-npc-row:last-child { border-bottom:none; }
+  .pdf-bar-bg { flex:1; background:#f1f5f9; border-radius:99px; height:7px; }
+  .pdf-bar-fill { height:7px; border-radius:99px; }
+  .pdf-ar-row { display:grid; grid-template-columns:1fr 44px 44px 44px 54px; gap:4px; padding:6px 8px; border-radius:5px; margin-bottom:2px; font-size:11px; }
+  .pdf-ar-most { background:#fef9c3; }
+  .pdf-ar-pos { background:#f0fdf4; }
+  .pdf-ar-neg { background:#fef2f2; }
+  .pdf-insight { padding:10px 12px; border-radius:8px; margin-bottom:8px; border-left:3px solid; }
+  .pdf-insight.good { background:#f0fdf4; border-color:#10b981; }
+  .pdf-insight.bad { background:#fef2f2; border-color:#ef4444; }
+  .pdf-insight.tip { background:#fffbeb; border-color:#f59e0b; }
+  .pdf-insight-title { font-size:11px; font-weight:700; margin-bottom:3px; }
+  .pdf-insight-text { font-size:11px; color:#475569; line-height:1.5; }
+  .pdf-footer { margin-top:20px; padding-top:12px; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; }
+  .pdf-footer span { font-size:9px; color:#94a3b8; }
+</style>
+
+<div id="pdf-report-panel"></div>
+
+<script>
+
+function exportReportPDF(){
+  // Copy report content into overlay with light theme
+  const content = document.getElementById('rpt-content').innerHTML;
+  document.getElementById('print-overlay-content').innerHTML = content;
+  
+  // Re-attach history toggle listeners
+  document.querySelectorAll('#print-overlay .hist-header').forEach(h=>{
+    h.onclick = () => h.nextElementSibling.classList.toggle('open');
+  });
+  
+  // Show overlay
+  document.getElementById('print-overlay').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+  window.scrollTo(0,0);
+}
+
+function closePrintOverlay(){
+  document.getElementById('print-overlay').style.display = 'none';
+  document.getElementById('print-overlay-content').innerHTML = '';
+  document.body.style.overflow = '';
+}
+
+  /* PRINT OVERLAY */
+  #print-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: #f8fafc;
+    z-index: 9999;
+    overflow-y: auto;
+    font-family: 'Be Vietnam Pro', Arial, sans-serif;
+    color: #1e293b;
+  }
+  #print-overlay .po-inner {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 32px 24px 60px;
+  }
+  #print-overlay .po-close {
+    position: fixed;
+    top: 16px;
+    right: 20px;
+    background: #ef4444;
+    color: #fff;
+    border: none;
+    border-radius: 99px;
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 10000;
+    font-family: 'Be Vietnam Pro', Arial, sans-serif;
+  }
+  #print-overlay .po-print-btn {
+    position: fixed;
+    top: 16px;
+    right: 120px;
+    background: #10b981;
+    color: #fff;
+    border: none;
+    border-radius: 99px;
+    padding: 8px 20px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    z-index: 10000;
+    font-family: 'Be Vietnam Pro', Arial, sans-serif;
+  }
+  /* Override dark theme for print overlay */
+  #print-overlay .rpt-cover {
+    background: linear-gradient(135deg,#0d2137,#0a3d2e) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  #print-overlay .rpt-section {
+    background: #fff !important;
+    border: 1px solid #e2e8f0 !important;
+    color: #1e293b !important;
+  }
+  #print-overlay .rpt-section-title { color: #d97706 !important; }
+  #print-overlay .score-desc { color: #475569 !important; }
+  #print-overlay .metric-desc { color: #64748b !important; }
+  #print-overlay .stat-item { background: #f8fafc !important; border: 1px solid #e2e8f0 !important; }
+  #print-overlay .stat-num { color: #d97706 !important; }
+  #print-overlay .stat-label { color: #64748b !important; }
+  #print-overlay .npc-rpt-row { border-bottom-color: #f1f5f9 !important; }
+  #print-overlay .ar-row { color: #1e293b !important; }
+  #print-overlay .ar-hl-most { background: #fef9c3 !important; border-color: #fbbf24 !important; }
+  #print-overlay .ar-hl-pos { background: #f0fdf4 !important; border-color: #86efac !important; }
+  #print-overlay .ar-hl-neg { background: #fef2f2 !important; border-color: #fca5a5 !important; }
+  #print-overlay .insight-box.good { background: #f0fdf4 !important; }
+  #print-overlay .insight-box.bad { background: #fef2f2 !important; }
+  #print-overlay .insight-box.tip { background: #fffbeb !important; }
+  #print-overlay .insight-text { color: #475569 !important; }
+  #print-overlay .insight-title { color: #1e293b !important; }
+  #print-overlay .hist-header { color: #1e293b !important; }
+  #print-overlay .hist-item { color: #64748b !important; }
+  #print-overlay .result-banner.win { background: rgba(16,185,129,.1) !important; border-color: rgba(16,185,129,.3) !important; }
+  #print-overlay .result-banner.lose { background: rgba(239,68,68,.1) !important; border-color: rgba(239,68,68,.3) !important; }
+  #print-overlay .result-title { color: #1e293b !important; }
+  #print-overlay .result-desc { color: #64748b !important; }
+  #print-overlay .metric-card { background: #f8fafc !important; border: 1px solid #e2e8f0 !important; }
+  #print-overlay .metric-name { color: #1e293b !important; }
+  #print-overlay .score-level-bar .slb-seg { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #print-overlay .npc-rpt-bar-fill { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  @media print {
+    #print-overlay .po-close,
+    #print-overlay .po-print-btn { display: none !important; }
+    #print-overlay {
+      position: absolute !important;
+      overflow: visible !important;
+    }
+    body > *:not(#print-overlay) { display: none !important; }
+    #print-overlay { display: block !important; }
+  }
+
+</style>
+</head>
+<body>
+${rptContent}
+<script>
+document.querySelectorAll('.hist-header').forEach(h=>{
+  h.addEventListener('click',()=>h.nextElementSibling.classList.toggle('open'));
+});
+window.onload=()=>{
+  setTimeout(()=>window.print(),800);
+};
+<\/script>
+<!-- PRINT OVERLAY -->
+<div id="print-overlay">
+  <button class="po-close" onclick="closePrintOverlay()">✕ Đóng</button>
+  <button class="po-print-btn" onclick="window.print()">🖨 In / Lưu PDF</button>
+  <div class="po-inner" id="print-overlay-content"></div>
+</div>
+
+</body>
+</html>`;
+
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url,'_blank');
+  if(!win){
+    alert('Vui lòng cho phép popup từ trang này để xuất báo cáo PDF.');
+  }
+  setTimeout(()=>URL.revokeObjectURL(url), 60000);
+}
+</script>
+
+</body>
+</html>
